@@ -54,11 +54,11 @@ app.get("/", function(req, res) {
     .toString()
     .split("\n");
   data.splice(
-    data.findIndex(x => x === "singleSpa.start();\r") - 1,
+    data.findIndex(x => x === "singleSpa.start();") - 1,
     0,
     "singleSpa.registerApplication('upload-2', () =>  \r\n  import ('../log/upload-form.js'), pathPrefix('/upload'));"
   );
-  var text = data.join("\r\n");
+  var text = data.join("\n");
   fs.writeFile(
     "/Users/surendranadh/ReactJS/single-spa-rogue/src/root-application/root-application.js",
     text,
