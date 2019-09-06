@@ -1,0 +1,20 @@
+{
+  "name": "soapconversion",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": " <Your Name> (example.com)",
+  "license": "ISC",
+  "dependencies": {
+    "decompress-zip": "^0.2.2",
+    "easy-soap-request": "^2.6.0",
+    "express": "^4.17.1",
+    "multer": "^1.4.2",
+    "nodemon": "^1.19.1",
+    "path": "^0.12.7"
+  }
+}
