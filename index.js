@@ -3,15 +3,22 @@ const multer = require("multer");
 const express = require("express");
 const Unzipper = require("decompress-zip");
 const app = express();
-// var fs = require("fs");
+const cors = require('cors');
+const bodyParser = require('body-parser');
+var fs = require("fs");
+const fsExtra = require('fs-extra');
 
 // fs.appendFile('D:/ReactProject/Rogue-Single-SPA/src/plugins/IMAGE-1567684019063.txt', 'Hello content! \r\n', function (err) {
 //   if (err) throw err;
 //   console.log('Saved!');
 // });
-console.log('Server Started')
+console.log("Server Started");
+app.use(cors());
+app.use(express.json())
+// app.use(bodyParser);
 const storage = multer.diskStorage({
-  destination: "/Users/surendranadh/ReactJS/single-spa-rogue/src/plugins",
+  destination:
+    "/Users/surendranadh/rogue-application/RogueAppFrontend/src/plugins",
   filename: function(req, file, cb) {
     cb(null, "IMAGE-" + Date.now() + path.extname(file.originalname));
   }
@@ -25,7 +32,7 @@ const upload = multer({
 
 app.post("/upload", function(req, res) {
   upload(req, res, function(err) {
-    console.log("Request ---", req.body);
+    console.log("Request ---", req.body.pluginName);
     console.log("Request file ---", req.file); //Here you get file.
     if (req.file) {
       var filepath = path.join(req.file.destination, req.file.filename);
@@ -34,8 +41,29 @@ app.post("/upload", function(req, res) {
       unzipper.on("extract", function() {
         console.log("Finished extracting");
       });
+      const splitextension = req.file.filename.split(".");
+      const dir = req.file.destination + "/" + splitextension[0];
+      // console.log("Directory", dir, "---", splitextension[0]);
 
-      unzipper.extract({ path: req.file.destination });
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+        unzipper.extract({ path: dir });
+      }
+
+      const menuName=req.body.pluginName;
+      const data = fs.readFileSync('/Users/surendranadh/rogue-application/RogueAppFrontend/index.html').toString().split("\n");
+      data.splice(data.findIndex(x => x === "    </ul>"), 0, `<a onclick="singleSpaNavigate('/`+menuName+`')"><li>`+menuName+`</li></a>`);
+      const text = data.join("\n");
+      fs.writeFile('/Users/surendranadh/rogue-application/RogueAppFrontend/index.html', text, function (err) {
+        if (err) return console.log(err);
+      });
+      setTimeout(function() {
+        const removeZipFIle = req.file.destination + "/" + req.file.filename;       
+        fs.unlinkSync(removeZipFIle, function(err) {
+          if (err) throw err;
+          console.log("File Deleted");
+        });
+      }, 10000);
     }
     /*Now do where ever you want to do*/
     if (!err) {
@@ -44,23 +72,44 @@ app.post("/upload", function(req, res) {
   });
 });
 
+app.post('/test', (req, res) => {
+  console.log("---", req.body);
+  var fs = require("fs");
+  setTimeout(async function() {
+    const removeZipFIle ='/Users/surendranadh/rogue-application/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
+    console.log("File Deleted", removeZipFIle);    
+      try {
+        await fsExtra.emptyDir(removeZipFIle)
+        console.log('success!')
+        fs.rmdir(removeZipFIle, function(err){
+          if (err) throw err;
+          console.log("File Deleted");
+        })
+      } catch (err) {
+        console.error(err)
+      }   
+  }, 10000);  
+  res.json({requestBody: req.body +" Deleted sucessfully"})  // <==== req.body will be a parsed JSON object
+})
+
+
 app.get("/", function(req, res) {
   res.send("Hello World");
   var fs = require("fs");
   var data = fs
     .readFileSync(
-      "/Users/surendranadh/ReactJS/single-spa-rogue/src/root-application/root-application.js"
+      "/Users/surendranadh/rogue-application/RogueAppFrontend/src/root-application/root-application.js"
     )
     .toString()
     .split("\n");
   data.splice(
-    data.findIndex(x => x === "singleSpa.start();") - 1,
+    data.findIndex(x => x === "singleSpa.start();\r") - 1,
     0,
     "singleSpa.registerApplication('upload-2', () =>  \r\n  import ('../log/upload-form.js'), pathPrefix('/upload'));"
   );
   var text = data.join("\n");
   fs.writeFile(
-    "/Users/surendranadh/ReactJS/single-spa-rogue/src/root-application/root-application.js",
+    "/Users/surendranadh/rogue-application/RogueAppFrontend/src/root-application/root-application.js",
     text,
     function(err) {
       if (err) return console.log(err);
@@ -68,4 +117,4 @@ app.get("/", function(req, res) {
   );
 });
 
-app.listen(4000);
+app.listen(3000);
