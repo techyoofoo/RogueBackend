@@ -18,7 +18,7 @@ app.use(express.json())
 // app.use(bodyParser);
 const storage = multer.diskStorage({
   destination:
-    "/Users/surendranadh/rogue-application/RogueAppFrontend/src/plugins",
+    "D:/Rogue/RogueAppFrontend/src/plugins",
   filename: function(req, file, cb) {
     cb(null, "IMAGE-" + Date.now() + path.extname(file.originalname));
   }
@@ -30,8 +30,8 @@ const upload = multer({
 }).single("myImage");
 // const router = express.Router();
 
-app.post("/upload", function(req, res) {
-  upload(req, res, function(err) {
+app.post("/upload", async function(req, res) {
+  upload(req, res, async function(err) {
     console.log("Request ---", req.body.pluginName);
     console.log("Request file ---", req.file); //Here you get file.
     if (req.file) {
@@ -44,19 +44,42 @@ app.post("/upload", function(req, res) {
       const splitextension = req.file.filename.split(".");
       const dir = req.file.destination + "/" + splitextension[0];
       // console.log("Directory", dir, "---", splitextension[0]);
-
+      var fs = require("fs");
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
         unzipper.extract({ path: dir });
       }
 
+      //const testFolder1 = "D:/Rogue/RogueAppFrontend/webpack.config1.js";
+      if (fs.existsSync(dir+"/index.js")) {
+        // Do something
+        console.log("not found");
+
       const menuName=req.body.pluginName;
-      const data = fs.readFileSync('/Users/surendranadh/rogue-application/RogueAppFrontend/index.html').toString().split("\n");
+      const data = fs.readFileSync('D:/Rogue/RogueAppFrontend/index.html').toString().split("\n");
       data.splice(data.findIndex(x => x === "    </ul>"), 0, `<a onclick="singleSpaNavigate('/`+menuName+`')"><li>`+menuName+`</li></a>`);
       const text = data.join("\n");
-      fs.writeFile('/Users/surendranadh/rogue-application/RogueAppFrontend/index.html', text, function (err) {
+      fs.writeFile('D:/Rogue/RogueAppFrontend/index.html', text, function (err) {
         if (err) return console.log(err);
       });
+    }
+    else
+    {
+      //const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
+      console.log("File Deleted", dir);    
+        try {
+          await fsExtra.emptyDir(dir)
+          console.log('success!')
+          fs.rmdir(dir, function(err){
+            if (err) throw err;
+            console.log("File Deleted");
+          })
+        } catch (err) {
+          console.error(err)
+        } 
+    }
+
+
       setTimeout(function() {
         const removeZipFIle = req.file.destination + "/" + req.file.filename;       
         fs.unlinkSync(removeZipFIle, function(err) {
@@ -76,7 +99,7 @@ app.post('/test', (req, res) => {
   console.log("---", req.body);
   var fs = require("fs");
   setTimeout(async function() {
-    const removeZipFIle ='/Users/surendranadh/rogue-application/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
+    const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
     console.log("File Deleted", removeZipFIle);    
       try {
         await fsExtra.emptyDir(removeZipFIle)
@@ -95,26 +118,31 @@ app.post('/test', (req, res) => {
 
 app.get("/", function(req, res) {
   res.send("Hello World");
+
   var fs = require("fs");
-  var data = fs
-    .readFileSync(
-      "/Users/surendranadh/rogue-application/RogueAppFrontend/src/root-application/root-application.js"
-    )
-    .toString()
-    .split("\n");
-  data.splice(
-    data.findIndex(x => x === "singleSpa.start();\r") - 1,
-    0,
-    "singleSpa.registerApplication('upload-2', () =>  \r\n  import ('../log/upload-form.js'), pathPrefix('/upload'));"
-  );
-  var text = data.join("\n");
-  fs.writeFile(
-    "/Users/surendranadh/rogue-application/RogueAppFrontend/src/root-application/root-application.js",
-    text,
-    function(err) {
-      if (err) return console.log(err);
-    }
-  );
+
+  // const testFolder1 = "D:/Rogue/RogueAppFrontend/webpack.config1.js";
+  // if (!fs.existsSync(testFolder1)) {
+  //   // Do something
+  //   console.log("not found");
+  // }
+  //Update the plugin into root-application.js
+  // var data = fs.readFileSync("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js").toString().split("\n");
+  // data.splice(data.findIndex(x => x === "singleSpa.start();\r"), 0,"singleSpa.registerApplication('upload-2', () => import ('../log/upload-form.js'), pathPrefix('/upload'));\n");
+  // var text = data.join("\n");
+  // fs.writeFile("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js",text,function(err) {
+  //     if (err) return console.log(err);
+  //   }
+  // );
+
+//Update the webpack with plugin name
+//  var webdata = fs.readFileSync('D:/Rogue/RogueAppFrontend/webpack.config.js').toString().split("\n");
+//  webdata.splice(webdata.findIndex(x => x === "  output: {\r") - 2, 0, "'sample-dom',");
+//   var webtext = webdata.join("\n");
+//   fs.writeFile('D:/Rogue/RogueAppFrontend/webpack.config.js', webtext, function (err) {
+//     if (err) return console.log(err);
+//   });
+
 });
 
 app.listen(3000);
