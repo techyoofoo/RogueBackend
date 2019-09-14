@@ -1,4 +1,4 @@
-import "dotenv/config";
+//import "dotenv/config";
 const path = require("path");
 const multer = require("multer");
 const express = require("express");
@@ -8,12 +8,13 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 var fs = require("fs");
 const fsExtra = require("fs-extra");
+var extract = require('extract-zip')
 
 // console.log("Hello Node.js project.");
 // console.log(process.env.FRONT_END_APP_PATH);
 // dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 
-const app_path =  process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
+const app_path = "E:/Rogue.git/RogueFrontend/"; //process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
 // fs.appendFile('D:/ReactProject/Rogue-Single-SPA/src/plugins/IMAGE-1567684019063.txt', 'Hello content! \r\n', function (err) {
 //   if (err) throw err;
 //   console.log('Saved!');
@@ -38,15 +39,21 @@ const upload = multer({
 
 app.post("/upload", function (req, res) {
   upload(req, res, async function (err) {
-    console.log("Request ---", req.body.name);
-    console.log("Request file ---", req.file); //Here you get file.
+    //console.log("Request ---", req.body.name);
+    // console.log("Request file ---", req.file); //Here you get file.
+    console.log("Requestedfile dest:" + req.file.destination);
     if (req.file) {
       var filepath = path.join(req.file.destination, req.file.filename);
       var unzipper = new Unzipper(filepath);
 
-      unzipper.on("extract", function () {
-        console.log("Finished extracting");
-      });
+      // unzipper.on("extract", function () {
+      //   console.log("Finished extracting");
+      // });
+
+      extract(filepath, { dir: req.file.destination }, function (err) {
+        console.log("Finished extracting zip");
+      })
+
       const splitextension = req.file.filename.split(".");
       const dir = req.file.destination + "/" + splitextension[0];
       const chkPath = `${dir}/index.js`;
@@ -61,17 +68,16 @@ app.post("/upload", function (req, res) {
         // Do something
         console.log("Selected Packages", req.body.package);
 
-        const dataPlugin = fs.readFileSync('D:/Rogue/RogueAppFrontend/src/login/login-form.js').toString();
+        const dataPlugin = fs.readFileSync('E:/Rogue.git/RogueFrontend/src/login/login-form.js').toString();
         if (dataPlugin.indexOf("reactLifecycles") > -1 && dataPlugin.indexOf("bootstrap") > -1 && dataPlugin.indexOf("mount") > -1 && dataPlugin.indexOf("unmount") > -1) {
-
           var appIndex = dataPlugin.indexOf("appName");
           var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, 9).length - 3)
 
           //Update the plugin into root-application.js
-          var rootData = fs.readFileSync("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js").toString().split("\n");
-          rootData.splice(rootData.findIndex(x => x === "singleSpa.start();\r"), 0, "singleSpa.registerApplication('"+appName+"', () => import ('../../src/"+splitextension[0]+"/index.js'), pathPrefix('/"+splitextension[0]+`'));\n`);
+          var rootData = fs.readFileSync("E:/Rogue.git/RogueFrontend/src/root-application/root-application.js").toString().split("\n");
+          rootData.splice(rootData.findIndex(x => x === "singleSpa.start();\r"), 0, "singleSpa.registerApplication('" + appName + "', () => import ('../../src/Plugins/" + splitextension[0] + "/index.js'), pathPrefix('/" + splitextension[0] + `'));\n`);
           var rootText = rootData.join("\n");
-          fs.writeFile("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js", rootText, function (err) {
+          fs.writeFile("E:/Rogue.git/RogueFrontend/src/root-application/root-application.js", rootText, function (err) {
             if (err) return console.log(err);
           }
           );
