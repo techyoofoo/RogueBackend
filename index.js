@@ -1,4 +1,4 @@
-//import "dotenv/config";
+import "dotenv/config";
 const path = require("path");
 const multer = require("multer");
 const express = require("express");
@@ -14,7 +14,8 @@ var extract = require('extract-zip')
 // console.log(process.env.FRONT_END_APP_PATH);
 // dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 
-const app_path = "E:/Rogue.git/RogueFrontend/"; //process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
+//const app_path = "E:/Rogue.git/RogueFrontend/"; //
+const app_path =  process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
 // fs.appendFile('D:/ReactProject/Rogue-Single-SPA/src/plugins/IMAGE-1567684019063.txt', 'Hello content! \r\n', function (err) {
 //   if (err) throw err;
 //   console.log('Saved!');
@@ -37,7 +38,92 @@ const upload = multer({
 }).single("myImage");
 // const router = express.Router();
 
-app.post("/upload", function (req, res) {
+app.post("/upload", async function (req, res) {
+  upload(req, res, async function (err) {
+    console.log("Request ---", req.body.pluginName);
+    console.log("Request file ---", req.file); //Here you get file.
+    if (req.file) {
+      var filepath = path.join(req.file.destination, req.file.filename);
+      var unzipper = new Unzipper(filepath);
+
+      unzipper.on("extract", function () {
+        console.log("Finished extracting");
+      });
+      const splitextension = req.file.filename.split(".");
+      const dir = req.file.destination + "/" + splitextension[0];
+      // console.log("Directory", dir, "---", splitextension[0]);
+      var fs = require("fs");
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+        unzipper.extract({ path: dir });
+      }
+
+      //const testFolder1 = "D:/Rogue/RogueAppFrontend/webpack.config1.js";
+      if (fs.existsSync(dir + "/index.js")) {
+        // Do something
+        console.log("file found");
+
+        const data = fs.readFileSync('D:/Rogue/RogueAppFrontend/src/login/login-form.js').toString();
+        if (data.indexOf("reactLifecycles") > -1 && data.indexOf("bootstrap") > -1 && data.indexOf("mount") > -1 && data.indexOf("unmount") > -1) {
+          var appIndex = data.indexOf("appName");
+          var appName = data.substring(appIndex).split("\n")[0].slice(9).substring(0, data.substring(appIndex).split("\n")[0].slice(9).substring(0, 9).length - 3)
+
+
+          const menuName = req.body.pluginName;
+          const data = fs.readFileSync('D:/Rogue/RogueAppFrontend/index.html').toString().split("\n");
+          data.splice(data.findIndex(x => x === "    </ul>"), 0, `<a onclick="singleSpaNavigate('/` + menuName + `')"><li>` + menuName + `</li></a>`);
+          const text = data.join("\n");
+          fs.writeFile('D:/Rogue/RogueAppFrontend/index.html', text, function (err) {
+            if (err) return console.log(err);
+          });
+        }
+        else {
+          //const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
+          console.log("File Deleted", dir);
+          try {
+            await fsExtra.emptyDir(dir)
+            console.log('success!')
+            fs.rmdir(dir, function (err) {
+              if (err) throw err;
+              console.log("File Deleted");
+            })
+          } catch (err) {
+            console.error(err)
+          }
+        }
+      }
+      else {
+        //const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
+        console.log("File Deleted", dir);
+        try {
+          await fsExtra.emptyDir(dir)
+          console.log('success!')
+          fs.rmdir(dir, function (err) {
+            if (err) throw err;
+            console.log("File Deleted");
+          })
+        } catch (err) {
+          console.error(err)
+        }
+      }
+
+
+      setTimeout(function () {
+        const removeZipFIle = req.file.destination + "/" + req.file.filename;
+        fs.unlinkSync(removeZipFIle, function (err) {
+          if (err) throw err;
+          console.log("File Deleted");
+        });
+      }, 10000);
+    }
+    /*Now do where ever you want to do*/
+    if (!err) {
+      return res.send(200).end();
+    }
+  });
+});
+
+app.post("/testupload", function (req, res) {
   upload(req, res, async function (err) {
     //console.log("Request ---", req.body.name);
     // console.log("Request file ---", req.file); //Here you get file.
