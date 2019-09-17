@@ -8,14 +8,28 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 var fs = require("fs");
 const fsExtra = require("fs-extra");
-var extract = require('extract-zip')
+var extract = require('extract-zip');
+const { transform, prettyPrint } = require('camaro');
+
+
+const soapRequest = require('easy-soap-request');
+
+
+var parser = require('fast-xml-parser');
+
+
+var soap = require('strong-soap').soap;
+var XMLHandler = soap.XMLHandler;
+var xmlHandler = new XMLHandler();
+var util = require('util');
+var url = 'http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL';
 
 // console.log("Hello Node.js project.");
 // console.log(process.env.FRONT_END_APP_PATH);
 // dotenv.config({ silent: process.env.NODE_ENV === 'production' });
 
 //const app_path = "E:/Rogue.git/RogueFrontend/"; //
-const app_path =  process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
+const app_path = process.env.FRONT_END_APP_PATH;//"D:/Rogue/RogueAppFrontend/";
 // fs.appendFile('D:/ReactProject/Rogue-Single-SPA/src/plugins/IMAGE-1567684019063.txt', 'Hello content! \r\n', function (err) {
 //   if (err) throw err;
 //   console.log('Saved!');
@@ -31,6 +45,7 @@ const storage = multer.diskStorage({
     cb(null, file.originalname);
   }
 });
+
 
 const upload = multer({
   storage: storage,
@@ -147,15 +162,15 @@ app.post("/testupload", function (req, res) {
 
       extract(filepath, { dir: req.file.destination }, function (err) {
         const chkPath = `${dir}/index.js`;
-  
+
         if (fs.existsSync(chkPath)) {
-         // console.log("Selected Packages", req.body.package);
-  
+          // console.log("Selected Packages", req.body.package);
+
           const dataPlugin = fs.readFileSync(`${app_path}src/login/login-form.js`).toString();
           if (dataPlugin.indexOf("reactLifecycles") > -1 && dataPlugin.indexOf("bootstrap") > -1 && dataPlugin.indexOf("mount") > -1 && dataPlugin.indexOf("unmount") > -1) {
             var appIndex = dataPlugin.indexOf("appName");
             var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, 9).length - 3)
-        
+
             //Update the plugin into root-application.js
             var rootData = fs.readFileSync(`${app_path}src/root-application/root-application.js`).toString().split("\n");
             rootData.splice(rootData.findIndex(x => x === "singleSpa.start();\r"), 0, "singleSpa.registerApplication('" + appName + "', () => import ('../../src/Plugins/" + splitextension[0] + "/index.js'), pathPrefix('/" + splitextension[0] + `'));\n`);
@@ -164,7 +179,7 @@ app.post("/testupload", function (req, res) {
               if (err) return console.log(err);
             }
             );
-  
+
             //Update the webpack with plugin name
             var pluginnameArray = req.body.package.split(',');
             var pluginnames = "'" + pluginnameArray.join("','") + "',";
@@ -174,8 +189,8 @@ app.post("/testupload", function (req, res) {
             fs.writeFile(`${app_path}webpack.config.js`, webtext, function (err) {
               if (err) return console.log(err);
             });
-  
-  
+
+
             const menuName = req.body.name;
             const indexdata = fs.readFileSync(`${app_path}index.html`).toString();
             //.split("\n");
@@ -190,7 +205,7 @@ app.post("/testupload", function (req, res) {
             //const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;       
             console.log("File Deleted", dir);
             try {
-               fsExtra.emptyDir(dir)
+              fsExtra.emptyDir(dir)
               console.log('success!')
               fs.rmdir(dir, function (err) {
                 if (err) throw err;
@@ -200,12 +215,12 @@ app.post("/testupload", function (req, res) {
               console.error(err)
             }
           }
-  
+
         } else {
           //const removeZipFIle ='D:/Rogue/RogueAppFrontend/src/plugins/'+req.body.pluginName;
           console.log("File Deleted", dir);
           try {
-             fsExtra.emptyDir(dir);
+            fsExtra.emptyDir(dir);
             console.log("success!");
             fs.rmdir(dir, function (err) {
               if (err) throw err;
@@ -216,8 +231,8 @@ app.post("/testupload", function (req, res) {
           }
         }
       })
-      
-  
+
+
 
       setTimeout(function () {
         const removeZipFIle = req.file.destination + "/" + req.file.filename;
@@ -233,6 +248,87 @@ app.post("/testupload", function (req, res) {
     }
   });
 });
+
+const headers = {
+  'user-agent': 'sampleTest',
+  'Content-Type': 'text/xml;charset=UTF-8',
+  'soapAction': 'http://api.exigo.com/AuthenticateCustomer',
+};
+const xml = `<soap:Envelope 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+<soap:Header>
+<ApiAuthentication xmlns="http://api.exigo.com/">
+<LoginName>chalkapi</LoginName>
+<Password>5PhHK339B76k2eM8</Password>
+<Company>chalkcouture</Company>
+</ApiAuthentication>
+</soap:Header>
+<soap:Body>
+<AuthenticateCustomerRequest xmlns="http://api.exigo.com/">
+<LoginName>dd.holman@comcast.net</LoginName>
+<Password>Holman39724@@@</Password>
+</AuthenticateCustomerRequest>
+</soap:Body>
+</soap:Envelope>`;
+
+
+
+  const template = {
+    AuthenticateCustomerResult: ['//AuthenticateCustomerResult', {
+      Result: 'Result',
+      CustomerID: 'CustomerID',
+      FirstName: 'FirstName',
+      LastName: 'LastName'
+    }]
+}
+
+
+
+app.post("/authenticate", function (req, res) {
+
+
+  (async () => {
+    const { response } = await soapRequest('http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
+    const { body, statusCode } = response;
+    const result = transform(response.body, template)
+    //console.log(body);
+    //console.log(statusCode);
+  })();
+
+
+
+  var requestArgs = {
+    // symbol: 'IBM'
+  };
+
+  var options = {
+    LoginName: 'dd.holman@comcast.net',
+    Password: 'Holman39724@@@'
+  };
+  var clientOptions = {
+  };
+  soap.createClient(url, clientOptions, function (err, client) {
+    // client.setSOAPAction(`http://api.exigo.com/AuthenticateCustomer`);
+    client.addSoapHeader(`<ApiAuthentication xmlns="http://api.exigo.com/">
+                          <LoginName>chalkapi</LoginName>
+                          <Password>5PhHK339B76k2eM8</Password>
+                          <Company>chalkcouture</Company>      
+                          </ApiAuthentication>`);
+    client.AuthenticateCustomer(options, function (err, result, envelope, soapHeader) {
+      console.log('result', result);
+      console.log('envelope', envelope);
+      if (err) {
+        throw err;
+      }
+      console.log(result);
+    })
+
+  });
+});
+
+
 
 // app.post("/test", (req, res) => {
 //   console.log("---", req.body);
