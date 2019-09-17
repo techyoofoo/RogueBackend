@@ -15,14 +15,14 @@ const { transform, prettyPrint } = require('camaro');
 const soapRequest = require('easy-soap-request');
 
 
-var parser = require('fast-xml-parser');
+//var parser = require('fast-xml-parser');
 
 
-var soap = require('strong-soap').soap;
-var XMLHandler = soap.XMLHandler;
+//var soap = require('strong-soap').soap;
+/* var XMLHandler = soap.XMLHandler;
 var xmlHandler = new XMLHandler();
 var util = require('util');
-var url = 'http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL';
+var url = 'http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL'; */
 
 // console.log("Hello Node.js project.");
 // console.log(process.env.FRONT_END_APP_PATH);
@@ -292,13 +292,15 @@ app.post("/authenticate", function (req, res) {
   (async () => {
     const { response } = await soapRequest('http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
     const { body, statusCode } = response;
-    const result = transform(response.body, template)
+    const result = transform(response.body, template);
+    res.body = result;
+    return res.send(response.body);
     //console.log(body);
     //console.log(statusCode);
   })();
 
 
-
+/* 
   var requestArgs = {
     // symbol: 'IBM'
   };
@@ -325,7 +327,7 @@ app.post("/authenticate", function (req, res) {
       console.log(result);
     })
 
-  });
+  }); */
 });
 
 
