@@ -249,54 +249,58 @@ app.post("/testupload", function (req, res) {
   });
 });
 
-const headers = {
-  'user-agent': 'sampleTest',
-  'Content-Type': 'text/xml;charset=UTF-8',
-  'soapAction': 'http://api.exigo.com/AuthenticateCustomer',
-};
-const xml = `<soap:Envelope 
-xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
-<soap:Header>
-<ApiAuthentication xmlns="http://api.exigo.com/">
-<LoginName>chalkapi</LoginName>
-<Password>5PhHK339B76k2eM8</Password>
-<Company>chalkcouture</Company>
-</ApiAuthentication>
-</soap:Header>
-<soap:Body>
-<AuthenticateCustomerRequest xmlns="http://api.exigo.com/">
-<LoginName>dd.holman@comcast.net</LoginName>
-<Password>Holman39724@@@</Password>
-</AuthenticateCustomerRequest>
-</soap:Body>
-</soap:Envelope>`;
 
 
-
-  const template = {
-    AuthenticateCustomerResult: ['//AuthenticateCustomerResult', {
-      Result: 'Result',
-      CustomerID: 'CustomerID',
-      FirstName: 'FirstName',
-      LastName: 'LastName'
-    }]
-}
 
 
 
 app.post("/authenticate", function (req, res) {
 
+  const headers = {
+    'user-agent': 'sampleTest',
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'soapAction': 'http://api.exigo.com/AuthenticateCustomer',
+  };
+  
+  const xml = `<soap:Envelope 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+  <ApiAuthentication xmlns="http://api.exigo.com/">
+  <LoginName>chalkapi</LoginName>
+  <Password>5PhHK339B76k2eM8</Password>
+  <Company>chalkcouture</Company>
+  </ApiAuthentication>
+  </soap:Header>
+  <soap:Body>
+  <AuthenticateCustomerRequest xmlns="http://api.exigo.com/">
+  <LoginName>dd.holman@comcast.net</LoginName>
+  <Password>Holman39724@@@</Password>
+  </AuthenticateCustomerRequest>
+  </soap:Body>
+  </soap:Envelope>`;
+
+  const template = {
+    CustomerResult:["//AuthenticateCustomerResult", {
+      Result:["//Result",{
+        Status:"Status",
+        Errors:"Errors",
+        TransactionKey:"TransactionKey"
+      }],
+      CustomerID:"CustomerID",
+      FirstName:"FirstName",
+      LastName:"LastName"
+    }]
+  };
 
   (async () => {
     const { response } = await soapRequest('http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
     const { body, statusCode } = response;
-    const result = transform(response.body, template);
-    res.body = result;
-    return res.send(response.body);
-    //console.log(body);
-    //console.log(statusCode);
+    const result = await transform(response.body, template);
+    const prettyStr = await prettyPrint(response.body, { indentSize: 4});
+
+    return res.send(result.CustomerResult[0]);
   })();
 
 
