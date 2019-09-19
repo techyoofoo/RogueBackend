@@ -61,17 +61,42 @@ app.post("/upload", function (req, res) {
         // Do something
         console.log("Selected Packages", req.body.package);
 
-        const dataPlugin = fs.readFileSync('D:/Rogue/RogueAppFrontend/src/login/login-form.js').toString();
-        if (dataPlugin.indexOf("reactLifecycles") > -1 && dataPlugin.indexOf("bootstrap") > -1 && dataPlugin.indexOf("mount") > -1 && dataPlugin.indexOf("unmount") > -1) {
+        const dataPlugin = fs.readFileSync(`${app_path}src/login/login-form.js`).toString();
+        
+        //Checking the reference files
+        const chkPath = `${app_path}src/plugins/sample/`;
+        const dataPlugin = fs.readFileSync(chkPath + `index.js`).toString();
+        var appIndex = dataPlugin.indexOf("rootComponent");
+        var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
+        //var webdata = dataPlugin.split("\n");
+        var dta = dataPlugin.indexOf("Root");
+        //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
+        var fileLine = dataPlugin.substring(dta).split("\n")[0].split(' ');
+        var folderPath = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/").length - 1
+        var fileNameArray = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/")
+        var fileName = fileNameArray[fileNameArray.length - 1].slice(0, -2);
+        var pathLocationArr = chkPath.split('/');
+        var newFilePath = "";
+        if (folderPath > 1) {
+          newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath)).join(`/`);
+        }
+        else {
+          newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath - 1)).join(`/`);
+        }
+        console.log(fileName);
+
+
+        if (dataPlugin.indexOf("reactLifecycles") > -1 && dataPlugin.indexOf("bootstrap") > -1 && dataPlugin.indexOf("mount") > -1 && dataPlugin.indexOf("unmount") > -1 && fs.existsSync(newFilePath+fileName)) 
+        {
 
           var appIndex = dataPlugin.indexOf("appName");
           var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(9).substring(0, 9).length - 3)
 
           //Update the plugin into root-application.js
-          var rootData = fs.readFileSync("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js").toString().split("\n");
-          rootData.splice(rootData.findIndex(x => x === "singleSpa.start();\r"), 0, "singleSpa.registerApplication('"+appName+"', () => import ('../../src/"+splitextension[0]+"/index.js'), pathPrefix('/"+splitextension[0]+`'));\n`);
+          var rootData = fs.readFileSync(`${app_path}src/root-application/root-application.js`).toString().split("\n");
+          rootData.splice(rootData.findIndex(x => x === "singleSpa.start();\r"), 0, "singleSpa.registerApplication('"+appName+"', () => import ('../../src/plugins/"+splitextension[0]+"/index.js'), pathPrefix('/"+splitextension[0]+`'));\n`);
           var rootText = rootData.join("\n");
-          fs.writeFile("D:/Rogue/RogueAppFrontend/src/root-application/root-application.js", rootText, function (err) {
+          fs.writeFile(`${app_path}src/root-application/root-application.js`, rootText, function (err) {
             if (err) return console.log(err);
           }
           );
@@ -79,10 +104,10 @@ app.post("/upload", function (req, res) {
           //Update the webpack with plugin name
           var pluginnameArray=req.body.package.split(',');
           var pluginnames="'"+pluginnameArray.join("','")+"',";
-          var webdata = fs.readFileSync('D:/Rogue/RogueAppFrontend/webpack.config.js').toString().split("\n");
+          var webdata = fs.readFileSync(`${app_path}webpack.config.js`).toString().split("\n");
           webdata.splice(webdata.findIndex(x => x === "  output: {\r") - 2, 0, pluginnames);
           var webtext = webdata.join("\n");
-          fs.writeFile('D:/Rogue/RogueAppFrontend/webpack.config.js', webtext, function (err) {
+          fs.writeFile(`${app_path}webpack.config.js`, webtext, function (err) {
             if (err) return console.log(err);
           });
 
@@ -142,25 +167,25 @@ app.post("/upload", function (req, res) {
   });
 });
 
-// app.post("/test", (req, res) => {
-//   console.log("---", req.body);
-//   var fs = require("fs");
-//   setTimeout(async function () {
-//     const removeZipFIle = `${app_path}src/plugins/` + req.body.name;
-//     console.log("File Deleted", removeZipFIle);
-//     try {
-//       await fsExtra.emptyDir(removeZipFIle);
-//       console.log("success!");
-//       fs.rmdir(removeZipFIle, function (err) {
-//         if (err) throw err;
-//         console.log("File Deleted");
-//       });
-//     } catch (err) {
-//       console.error(err);
-//     }
-//   }, 10000);
-//   res.json({ requestBody: req.body + " Deleted sucessfully" }); // <==== req.body will be a parsed JSON object
-// });
+app.post("/test", (req, res) => {
+  console.log("---", req.body);
+  var fs = require("fs");
+  setTimeout(async function () {
+    const removeZipFIle = `${app_path}src/plugins/` + req.body.name;
+    console.log("File Deleted", removeZipFIle);
+    try {
+      await fsExtra.emptyDir(removeZipFIle);
+      console.log("success!");
+      fs.rmdir(removeZipFIle, function (err) {
+        if (err) throw err;
+        console.log("File Deleted");
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }, 10000);
+  res.json({ requestBody: req.body + " Deleted sucessfully" }); // <==== req.body will be a parsed JSON object
+});
 
 app.get("/", function (req, res) {
   res.send("Hello World");
@@ -189,6 +214,35 @@ app.get("/", function (req, res) {
   //   fs.writeFile('D:/Rogue/RogueAppFrontend/webpack.config.js', webtext, function (err) {
   //     if (err) return console.log(err);
   //   });
+
+  const chkPath = `D:/Rogue/RogueAppFrontend/src/plugins/sample/`;
+  const dataPlugin = fs.readFileSync(chkPath+`index.js`).toString();
+  var appIndex = dataPlugin.indexOf("rootComponent");
+  var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
+  //var webdata = dataPlugin.split("\n");
+  var dta  = dataPlugin.indexOf("Root");
+  //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
+  var fileLine=dataPlugin.substring(dta).split("\n")[0].split(' ');
+  var folderPath=dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length-1].split("/").length - 1
+  var fileNameArray=dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length-1].split("/")
+  var fileName=fileNameArray[fileNameArray.length-1].slice(0, -2);
+  var pathLocationArr=chkPath.split('/');
+  var newFilePath="";
+  if(folderPath>1)
+  {
+    newFilePath=pathLocationArr.splice(0,pathLocationArr.length-(folderPath)).join(`/`);
+  }
+  else{
+    newFilePath=pathLocationArr.splice(0,pathLocationArr.length-(folderPath-1)).join(`/`);
+  }
+  console.log(fileName);
+  if (fs.existsSync(newFilePath+fileName)) {
+    console.log("Component file found");
+  }
+  else
+  {
+    console.log("Component file not found");
+  }
 });
 
 app.listen(3000);
