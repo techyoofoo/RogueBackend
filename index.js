@@ -82,7 +82,32 @@ app.post("/upload", async function (req, res) {
         console.log("file found");
 
         const data = fs.readFileSync(`${app_path}src/login/login-form.js`).toString();
-        if (data.indexOf("reactLifecycles") > -1 && data.indexOf("bootstrap") > -1 && data.indexOf("mount") > -1 && data.indexOf("unmount") > -1) {
+        //Checking the referenced files
+        var fs = require("fs");
+        const chkPath = `${app_path}src/plugins/sample/`;
+        const dataPlugin = fs.readFileSync(chkPath + `index.js`).toString();
+        var appIndex = dataPlugin.indexOf("rootComponent");
+        var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
+        //var webdata = dataPlugin.split("\n");
+        var dta = dataPlugin.indexOf("Root");
+        //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
+        var fileLine = dataPlugin.substring(dta).split("\n")[0].split(' ');
+        var folderPath = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/").length - 1
+        var fileNameArray = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/")
+        var fileName = fileNameArray[fileNameArray.length - 1].slice(0, -2);
+        var pathLocationArr = chkPath.split('/');
+        var newFilePath = "";
+        if (folderPath > 1) {
+          newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath)).join(`/`);
+        }
+        else {
+          newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath - 1)).join(`/`);
+        }
+        console.log(fileName);
+
+
+        if (data.indexOf("reactLifecycles") > -1 && data.indexOf("bootstrap") > -1 && data.indexOf("mount") > -1 && data.indexOf("unmount") > -1 && fs.existsSync(newFilePath + fileName)) 
+        {
           var appIndex = data.indexOf("appName");
           var appName = data.substring(appIndex).split("\n")[0].slice(9).substring(0, data.substring(appIndex).split("\n")[0].slice(9).substring(0, 9).length - 3)
 
@@ -261,7 +286,7 @@ app.post("/authenticate", function (req, res) {
     'Content-Type': 'text/xml;charset=UTF-8',
     'soapAction': 'http://api.exigo.com/AuthenticateCustomer',
   };
-  
+
   const xml = `<soap:Envelope 
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
@@ -282,15 +307,15 @@ app.post("/authenticate", function (req, res) {
   </soap:Envelope>`;
 
   const template = {
-    CustomerResult:["//AuthenticateCustomerResult", {
-      Result:["//Result",{
-        Status:"Status",
-        Errors:"Errors",
-        TransactionKey:"TransactionKey"
+    CustomerResult: ["//AuthenticateCustomerResult", {
+      Result: ["//Result", {
+        Status: "Status",
+        Errors: "Errors",
+        TransactionKey: "TransactionKey"
       }],
-      CustomerID:"CustomerID",
-      FirstName:"FirstName",
-      LastName:"LastName"
+      CustomerID: "CustomerID",
+      FirstName: "FirstName",
+      LastName: "LastName"
     }]
   };
 
@@ -298,40 +323,40 @@ app.post("/authenticate", function (req, res) {
     const { response } = await soapRequest('http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
     const { body, statusCode } = response;
     const result = await transform(response.body, template);
-    const prettyStr = await prettyPrint(response.body, { indentSize: 4});
+    const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
 
     return res.send(result.CustomerResult[0]);
   })();
 
 
-/* 
-  var requestArgs = {
-    // symbol: 'IBM'
-  };
-
-  var options = {
-    LoginName: 'dd.holman@comcast.net',
-    Password: 'Holman39724@@@'
-  };
-  var clientOptions = {
-  };
-  soap.createClient(url, clientOptions, function (err, client) {
-    // client.setSOAPAction(`http://api.exigo.com/AuthenticateCustomer`);
-    client.addSoapHeader(`<ApiAuthentication xmlns="http://api.exigo.com/">
-                          <LoginName>chalkapi</LoginName>
-                          <Password>5PhHK339B76k2eM8</Password>
-                          <Company>chalkcouture</Company>      
-                          </ApiAuthentication>`);
-    client.AuthenticateCustomer(options, function (err, result, envelope, soapHeader) {
-      console.log('result', result);
-      console.log('envelope', envelope);
-      if (err) {
-        throw err;
-      }
-      console.log(result);
-    })
-
-  }); */
+  /* 
+    var requestArgs = {
+      // symbol: 'IBM'
+    };
+  
+    var options = {
+      LoginName: 'dd.holman@comcast.net',
+      Password: 'Holman39724@@@'
+    };
+    var clientOptions = {
+    };
+    soap.createClient(url, clientOptions, function (err, client) {
+      // client.setSOAPAction(`http://api.exigo.com/AuthenticateCustomer`);
+      client.addSoapHeader(`<ApiAuthentication xmlns="http://api.exigo.com/">
+                            <LoginName>chalkapi</LoginName>
+                            <Password>5PhHK339B76k2eM8</Password>
+                            <Company>chalkcouture</Company>      
+                            </ApiAuthentication>`);
+      client.AuthenticateCustomer(options, function (err, result, envelope, soapHeader) {
+        console.log('result', result);
+        console.log('envelope', envelope);
+        if (err) {
+          throw err;
+        }
+        console.log(result);
+      })
+  
+    }); */
 });
 
 
@@ -385,31 +410,29 @@ app.get("/", function (req, res) {
   //   });
 
   const chkPath = `D:/Rogue/RogueAppFrontend/src/plugins/sample/`;
-  const dataPlugin = fs.readFileSync(chkPath+`index.js`).toString();
+  const dataPlugin = fs.readFileSync(chkPath + `index.js`).toString();
   var appIndex = dataPlugin.indexOf("rootComponent");
   var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
   //var webdata = dataPlugin.split("\n");
-  var dta  = dataPlugin.indexOf("Root");
+  var dta = dataPlugin.indexOf("Root");
   //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
-  var fileLine=dataPlugin.substring(dta).split("\n")[0].split(' ');
-  var folderPath=dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length-1].split("/").length - 1
-  var fileNameArray=dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length-1].split("/")
-  var fileName=fileNameArray[fileNameArray.length-1].slice(0, -2);
-  var pathLocationArr=chkPath.split('/');
-  var newFilePath="";
-  if(folderPath>1)
-  {
-    newFilePath=pathLocationArr.splice(0,pathLocationArr.length-(folderPath)).join(`/`);
+  var fileLine = dataPlugin.substring(dta).split("\n")[0].split(' ');
+  var folderPath = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/").length - 1
+  var fileNameArray = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/")
+  var fileName = fileNameArray[fileNameArray.length - 1].slice(0, -2);
+  var pathLocationArr = chkPath.split('/');
+  var newFilePath = "";
+  if (folderPath > 1) {
+    newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath)).join(`/`);
   }
-  else{
-    newFilePath=pathLocationArr.splice(0,pathLocationArr.length-(folderPath-1)).join(`/`);
+  else {
+    newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath - 1)).join(`/`);
   }
   console.log(fileName);
-  if (fs.existsSync(newFilePath+fileName)) {
+  if (fs.existsSync(newFilePath + fileName)) {
     console.log("Component file found");
   }
-  else
-  {
+  else {
     console.log("Component file not found");
   }
 });
