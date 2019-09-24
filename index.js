@@ -53,7 +53,7 @@ const upload = multer({
 }).single("myImage");
 // const router = express.Router();
 
-app.post("/upload", async function (req, res) {
+app.post("/testupload", async function (req, res) {
   upload(req, res, async function (err) {
     console.log("Request ---", req.body.pluginName);
     console.log("Request file ---", req.file); //Here you get file.
@@ -166,7 +166,7 @@ app.post("/upload", async function (req, res) {
   });
 });
 
-app.post("/testupload", function (req, res) {
+app.post("/upload", function (req, res) {
   upload(req, res, async function (err) {
     if (req.file) {
       var filepath = path.join(req.file.destination, req.file.filename);
