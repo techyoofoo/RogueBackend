@@ -282,7 +282,6 @@ app.post("/testupload", function (req, res) {
 app.post("/authenticate", function (req, res) {
 
   const headers = {
-    'user-agent': 'sampleTest',
     'Content-Type': 'text/xml;charset=UTF-8',
     'soapAction': 'http://api.exigo.com/AuthenticateCustomer',
   };
@@ -293,15 +292,15 @@ app.post("/authenticate", function (req, res) {
   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header>
   <ApiAuthentication xmlns="http://api.exigo.com/">
-  <LoginName>chalkapi</LoginName>
-  <Password>5PhHK339B76k2eM8</Password>
-  <Company>chalkcouture</Company>
+  <LoginName>`+req.body.ApiAuthentication.LoginName+`</LoginName>
+  <Password>`+req.body.ApiAuthentication.Password+`</Password>
+  <Company>`+req.body.ApiAuthentication.Company+`</Company>
   </ApiAuthentication>
   </soap:Header>
   <soap:Body>
   <AuthenticateCustomerRequest xmlns="http://api.exigo.com/">
-  <LoginName>nurserhonda70@gmail.com</LoginName>
-  <Password>DovieS5!</Password>
+  <LoginName>`+req.body.AuthenticateCustomerRequest.LoginName+`</LoginName>
+  <Password>`+req.body.AuthenticateCustomerRequest.Password+`</Password>
   </AuthenticateCustomerRequest>
   </soap:Body>
   </soap:Envelope>`;
@@ -362,7 +361,6 @@ app.post("/authenticate", function (req, res) {
 app.post("/getitems", function (req, res) {
 
   const headers = {
-    'user-agent': 'sampleTest',
     'Content-Type': 'text/xml;charset=UTF-8',
     'soapAction': 'http://api.exigo.com/GetItems',
   };
@@ -372,18 +370,18 @@ app.post("/getitems", function (req, res) {
   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header>
   <ApiAuthentication xmlns="http://api.exigo.com/">
-  <LoginName>chalkapi</LoginName>
-  <Password>5PhHK339B76k2eM8</Password>
-  <Company>chalkcouture</Company>
+  <LoginName>`+req.body.ApiAuthentication.LoginName+`</LoginName>
+  <Password>`+req.body.ApiAuthentication.Password+`</Password>
+  <Company>`+req.body.ApiAuthentication.Company+`</Company>
   </ApiAuthentication>
   </soap:Header>
   <soap:Body>
   <GetItemsRequest xmlns="http://api.exigo.com/">
-    <CurrencyCode>usd</CurrencyCode>
-    <PriceType>1</PriceType>
-    <WarehouseID>2</WarehouseID>
-      <WebID>1</WebID>
-      <WebCategoryID>1</WebCategoryID>
+    <CurrencyCode>`+req.body.GetItemsRequest.CurrencyCode+`</CurrencyCode>
+    <PriceType>`+req.body.GetItemsRequest.PriceType+`</PriceType>
+    <WarehouseID>`+req.body.GetItemsRequest.WarehouseID+`</WarehouseID>
+      <WebID>`+req.body.GetItemsRequest.WebID+`</WebID>
+      <WebCategoryID>`+req.body.GetItemsRequest.WebCategoryID+`</WebCategoryID>
   </GetItemsRequest>
 </soap:Body>
   </soap:Envelope>`;
@@ -409,14 +407,13 @@ app.post("/getitems", function (req, res) {
     const result = await transform(response.body, template);
     const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
 
-    return res.send(result.ItemsResult[0].Items[0]);
+    return res.send(result.ItemsResult[0]);
   })();
 });
 
 app.post("/getcustomers", function (req, res) {
 
   const headers = {
-    'user-agent': 'sampleTest',
     'Content-Type': 'text/xml;charset=UTF-8',
     'soapAction': 'http://api.exigo.com/GetCustomers',
   };
@@ -426,9 +423,9 @@ app.post("/getcustomers", function (req, res) {
   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header>
   <ApiAuthentication xmlns="http://api.exigo.com/">
-  <LoginName>chalkapi</LoginName>
-  <Password>5PhHK339B76k2eM8</Password>
-  <Company>chalkcouture</Company>
+  <LoginName>`+req.body.ApiAuthentication.LoginName+`</LoginName>
+  <Password>`+req.body.ApiAuthentication.Password+`</Password>
+  <Company>`+req.body.ApiAuthentication.Company+`</Company>
   </ApiAuthentication>
   </soap:Header>
   <soap:Body>
@@ -462,15 +459,14 @@ app.post("/getcustomers", function (req, res) {
     const result = await transform(response.body, template);
     const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
 
-    return res.send(result.ItemsResult[0].Items);
+    return res.send(result.ItemsResult);
   })();
 });
 
 
-app.post("/getautoorders", function (req, res) {
+app.post("/getautoorder", function (req, res) {
 
   const headers = {
-    'user-agent': 'sampleTest',
     'Content-Type': 'text/xml;charset=UTF-8',
     'soapAction': 'http://api.exigo.com/GetAutoOrders',
   };
@@ -480,14 +476,14 @@ app.post("/getautoorders", function (req, res) {
   xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Header>
   <ApiAuthentication xmlns="http://api.exigo.com/">
-  <LoginName>chalkapi</LoginName>
-  <Password>5PhHK339B76k2eM8</Password>
-  <Company>chalkcouture</Company>
+  <LoginName>`+req.body.ApiAuthentication.LoginName+`</LoginName>
+  <Password>`+req.body.ApiAuthentication.Password+`</Password>
+  <Company>`+req.body.ApiAuthentication.Company+`</Company>
   </ApiAuthentication>
   </soap:Header>
   <soap:Body>
   <GetAutoOrdersRequest xmlns="http://api.exigo.com/">
-  <CustomerID>14113</CustomerID>    
+  <CustomerID>`+req.body.GetAutoOrdersRequest.CustomerID+`</CustomerID>    
       </GetAutoOrdersRequest>
 </soap:Body>
   </soap:Envelope>`;
@@ -518,7 +514,7 @@ app.post("/getautoorders", function (req, res) {
     const { body, statusCode } = response;
     const result = await transform(response.body, template);
     const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
-    return res.send(result.ItemsResult[0].Items[0]);
+    return res.send(result.ItemsResult[0]);
   })();
 });
 
