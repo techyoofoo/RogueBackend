@@ -300,8 +300,8 @@ app.post("/authenticate", function (req, res) {
   </soap:Header>
   <soap:Body>
   <AuthenticateCustomerRequest xmlns="http://api.exigo.com/">
-  <LoginName>dd.holman@comcast.net</LoginName>
-  <Password>Holman39724@@@</Password>
+  <LoginName>nurserhonda70@gmail.com</LoginName>
+  <Password>DovieS5!</Password>
   </AuthenticateCustomerRequest>
   </soap:Body>
   </soap:Envelope>`;
@@ -320,7 +320,7 @@ app.post("/authenticate", function (req, res) {
   };
 
   (async () => {
-    const { response } = await soapRequest('http://chalkcouture-api.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
+    const { response } = await soapRequest('http://sandboxapi3.exigo.com/3.0/ExigoApi.asmx?WSDL?op=AuthenticateCustomer', headers, xml, 10000); // Optional timeout parameter(milliseconds)
     const { body, statusCode } = response;
     const result = await transform(response.body, template);
     const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
@@ -359,7 +359,168 @@ app.post("/authenticate", function (req, res) {
     }); */
 });
 
+app.post("/getitems", function (req, res) {
 
+  const headers = {
+    'user-agent': 'sampleTest',
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'soapAction': 'http://api.exigo.com/GetItems',
+  };
+  const xml = `<soap:Envelope 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+  <ApiAuthentication xmlns="http://api.exigo.com/">
+  <LoginName>chalkapi</LoginName>
+  <Password>5PhHK339B76k2eM8</Password>
+  <Company>chalkcouture</Company>
+  </ApiAuthentication>
+  </soap:Header>
+  <soap:Body>
+  <GetItemsRequest xmlns="http://api.exigo.com/">
+    <CurrencyCode>usd</CurrencyCode>
+    <PriceType>1</PriceType>
+    <WarehouseID>2</WarehouseID>
+      <WebID>1</WebID>
+      <WebCategoryID>1</WebCategoryID>
+  </GetItemsRequest>
+</soap:Body>
+  </soap:Envelope>`;
+
+  const template = {
+    ItemsResult: ["//GetItemsResult", {
+      Result: ["//Result", {
+        Status: "Status",
+        Errors: "Errors",
+        TransactionKey: "TransactionKey"
+      }],
+      Items: ["//Items//ItemResponse", {
+        ItemCode: "ItemCode",
+        Description: "Description",
+        Price: "Price"
+      }]
+    }]
+  };
+
+  (async () => {
+    const { response } = await soapRequest('http://sandboxapi3.exigo.com/3.0/ExigoApi.asmx?WSDL?op=GetItems', headers, xml, 10000); // Optional timeout parameter(milliseconds)
+    const { body, statusCode } = response;
+    const result = await transform(response.body, template);
+    const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
+
+    return res.send(result.ItemsResult[0].Items[0]);
+  })();
+});
+
+app.post("/getcustomers", function (req, res) {
+
+  const headers = {
+    'user-agent': 'sampleTest',
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'soapAction': 'http://api.exigo.com/GetCustomers',
+  };
+  const xml = `<soap:Envelope 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+  <ApiAuthentication xmlns="http://api.exigo.com/">
+  <LoginName>chalkapi</LoginName>
+  <Password>5PhHK339B76k2eM8</Password>
+  <Company>chalkcouture</Company>
+  </ApiAuthentication>
+  </soap:Header>
+  <soap:Body>
+  <GetCustomersRequest xmlns="http://api.exigo.com/">
+  </GetCustomersRequest>
+</soap:Body>
+  </soap:Envelope>`;
+
+  const template = {
+    ItemsResult: ["//GetCustomersResult", {
+      Result: ["//Result", {
+        Status: "Status",
+        Errors: "Errors",
+        TransactionKey: "TransactionKey"
+      }],
+      Items: ["//Customers//CustomerResponse", {
+        CustomerID: "CustomerID",
+        FirstName: "FirstName",
+        LastName: "LastName",
+        Company:"Company",
+        CustomerType:"CustomerType",
+        CustomerStatus:"CustomerStatus",
+        Email:"Email"
+      }]
+    }]
+  };
+
+  (async () => {
+    const { response } = await soapRequest('http://sandboxapi3.exigo.com/3.0/ExigoApi.asmx?WSDL?op=GetCustomers', headers, xml, 10000); // Optional timeout parameter(milliseconds)
+    const { body, statusCode } = response;
+    const result = await transform(response.body, template);
+    const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
+
+    return res.send(result.ItemsResult[0].Items);
+  })();
+});
+
+
+app.post("/getautoorders", function (req, res) {
+
+  const headers = {
+    'user-agent': 'sampleTest',
+    'Content-Type': 'text/xml;charset=UTF-8',
+    'soapAction': 'http://api.exigo.com/GetAutoOrders',
+  };
+  const xml = `<soap:Envelope 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+  xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Header>
+  <ApiAuthentication xmlns="http://api.exigo.com/">
+  <LoginName>chalkapi</LoginName>
+  <Password>5PhHK339B76k2eM8</Password>
+  <Company>chalkcouture</Company>
+  </ApiAuthentication>
+  </soap:Header>
+  <soap:Body>
+  <GetAutoOrdersRequest xmlns="http://api.exigo.com/">
+  <CustomerID>14113</CustomerID>    
+      </GetAutoOrdersRequest>
+</soap:Body>
+  </soap:Envelope>`;
+
+  const template = {
+    ItemsResult: ["//GetAutoOrdersResult", {
+      Result: ["//Result", {
+        Status: "Status",
+        Errors: "Errors",
+        TransactionKey: "TransactionKey"
+      }],
+      Items: ["//AutoOrders//AutoOrderResponse", {
+        CustomerID: "CustomerID",
+        AutoOrderID: "AutoOrderID",
+        AutoOrderStatus: "AutoOrderStatus",
+        Frequency:"Frequency",
+        StartDate:"StartDate",
+        StopDate:"StopDate",
+        LastRunDate:"LastRunDate",
+        NextRunDate:"NextRunDate",
+        CurrencyCode:"CurrencyCode"
+      }]
+    }]
+  };
+
+  (async () => {
+    const { response } = await soapRequest('http://sandboxapi3.exigo.com/3.0/ExigoApi.asmx?WSDL?op=GetAutoOrders', headers, xml, 10000); // Optional timeout parameter(milliseconds)
+    const { body, statusCode } = response;
+    const result = await transform(response.body, template);
+    const prettyStr = await prettyPrint(response.body, { indentSize: 4 });
+    return res.send(result.ItemsResult[0].Items[0]);
+  })();
+});
 
 // app.post("/test", (req, res) => {
 //   console.log("---", req.body);
@@ -409,32 +570,32 @@ app.get("/", function (req, res) {
   //     if (err) return console.log(err);
   //   });
 
-  const chkPath = `D:/Rogue/RogueAppFrontend/src/plugins/sample/`;
-  const dataPlugin = fs.readFileSync(chkPath + `index.js`).toString();
-  var appIndex = dataPlugin.indexOf("rootComponent");
-  var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
-  //var webdata = dataPlugin.split("\n");
-  var dta = dataPlugin.indexOf("Root");
-  //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
-  var fileLine = dataPlugin.substring(dta).split("\n")[0].split(' ');
-  var folderPath = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/").length - 1
-  var fileNameArray = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/")
-  var fileName = fileNameArray[fileNameArray.length - 1].slice(0, -2);
-  var pathLocationArr = chkPath.split('/');
-  var newFilePath = "";
-  if (folderPath > 1) {
-    newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath)).join(`/`);
-  }
-  else {
-    newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath - 1)).join(`/`);
-  }
-  console.log(fileName);
-  if (fs.existsSync(newFilePath + fileName)) {
-    console.log("Component file found");
-  }
-  else {
-    console.log("Component file not found");
-  }
+  // const chkPath = `D:/Rogue/RogueAppFrontend/src/plugins/sample/`;
+  // const dataPlugin = fs.readFileSync(chkPath + `index.js`).toString();
+  // var appIndex = dataPlugin.indexOf("rootComponent");
+  // var appName = dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, dataPlugin.substring(appIndex).split("\n")[0].slice(14).substring(0, 14).length - 1).trim();
+  // //var webdata = dataPlugin.split("\n");
+  // var dta = dataPlugin.indexOf("Root");
+  // //var fileName = dataPlugin.substring(dta).split("\n")[0].slice(13).substring(0,(dataPlugin.substring(dta).split("\n")[0].slice(13)).length-2);
+  // var fileLine = dataPlugin.substring(dta).split("\n")[0].split(' ');
+  // var folderPath = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/").length - 1
+  // var fileNameArray = dataPlugin.substring(dta).split("\n")[0].split(' ')[dataPlugin.substring(dta).split("\n")[0].split(' ').length - 1].split("/")
+  // var fileName = fileNameArray[fileNameArray.length - 1].slice(0, -2);
+  // var pathLocationArr = chkPath.split('/');
+  // var newFilePath = "";
+  // if (folderPath > 1) {
+  //   newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath)).join(`/`);
+  // }
+  // else {
+  //   newFilePath = pathLocationArr.splice(0, pathLocationArr.length - (folderPath - 1)).join(`/`);
+  // }
+  // console.log(fileName);
+  // if (fs.existsSync(newFilePath + fileName)) {
+  //   console.log("Component file found");
+  // }
+  // else {
+  //   console.log("Component file not found");
+  // }
 });
 
 app.listen(3000);
